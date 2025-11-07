@@ -13,7 +13,22 @@ export function HomePage() {
   const navigate = useNavigate();
   const [answer, setAnswer] = useState('');
   const [attempts, setAttempts] = useState(3);
-  const [quiz, setQuiz] = useState(generateQuiz());
+  const [quiz, setQuiz] = useState<Quiz | null>(null);
+
+  useEffect(() => {
+    async function fetchQuiz() {
+      const newQuiz = await generateQuiz();
+      setQuiz(newQuiz);
+    }
+    fetchQuiz();
+  }, []);
+  
+
+  async function loadQuiz() {
+    const newQuiz = await generateQuiz();
+    setQuiz(newQuiz);
+  }
+
   const [score, setScore] = useState(0);
 
   const handleSubmit = () => {
@@ -25,7 +40,7 @@ export function HomePage() {
     if (parseInt(answer) === quiz.answer) {
       toast.success('Correct! 🎉');
       setScore(score + 10);
-      setQuiz(generateQuiz());
+      loadQuiz();
       setAnswer('');
     } else {
       setAttempts(attempts - 1);
@@ -40,7 +55,7 @@ export function HomePage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-8 max-w-4xl bg-gradient-to-br from-yellow-100 to-orange-50">
       <div className="text-center mb-8">
         <h1 className="text-6xl mb-4">🍌 BANAMATIX 🍌</h1>
         <p className="text-xl text-gray-700">Solve the banana math puzzles!</p>
@@ -72,7 +87,7 @@ export function HomePage() {
       <Card className="mb-6 bg-white/90 backdrop-blur">
         <CardContent className="pt-6">
           <QuizImage quiz={quiz} />
-          
+
           <div className="mt-6 space-y-4">
             <div>
               <label className="block mb-2">Your Answer:</label>
@@ -86,8 +101,8 @@ export function HomePage() {
                 disabled={attempts === 0}
               />
             </div>
-            <Button 
-              onClick={handleSubmit} 
+            <Button
+              onClick={handleSubmit}
               className="w-full bg-yellow-500 hover:bg-yellow-600 text-black"
               size="lg"
               disabled={attempts === 0}
@@ -99,7 +114,7 @@ export function HomePage() {
       </Card>
 
       <div className="text-center space-y-4">
-        <Button 
+        <Button
           onClick={() => navigate('/login')}
           variant="outline"
           size="lg"
@@ -111,3 +126,4 @@ export function HomePage() {
     </div>
   );
 }
+
