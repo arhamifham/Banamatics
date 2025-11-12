@@ -38,20 +38,21 @@ export function HomePage() {
     }
 
     if (parseInt(answer) === quiz.answer) {
-      toast.success('Correct! 🎉');
+      toast.success(`Correct answer! 🎉 ${attempts-1} attempts left`);
       setScore(score + 10);
       loadQuiz();
       setAnswer('');
+      setAttempts(attempts - 1);
     } else {
       setAttempts(attempts - 1);
       toast.error(`Wrong answer! ${attempts - 1} attempts left`);
       setAnswer('');
-
+    }
       if (attempts - 1 === 0) {
         toast.error('Trial ended! Please login to continue playing.');
         setTimeout(() => navigate('/login'), 2000);
       }
-    }
+    
   };
 
   return (
