@@ -10,35 +10,41 @@ import { toast } from 'sonner@2.0.3';
 export function LoginPage() {
   const navigate = useNavigate();
   const [loginData, setLoginData] = useState({ username: '', password: '' });
-  const [registerData, setRegisterData] = useState({ 
-    username: '', 
-    email: '', 
-    password: '', 
-    confirmPassword: '' 
-  });
+  const [registerData, setRegisterData] = useState({ username: '', email: '', password: '', confirmPassword: '' });
 
-  const handleLogin = (e: React.FormEvent) => {
+  const backendURL = 'http://localhost:8001/banamatix_backend/';
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!loginData.username || !loginData.password) {
       toast.error('Please fill in all fields');
       return;
     }
 
-    const users = JSON.parse(localStorage.getItem('banamatix_users') || '{}');
-    
-    if (users[loginData.username] && users[loginData.username].password === loginData.password) {
-      localStorage.setItem('banamatix_current_user', loginData.username);
-      toast.success('Login successful! 🎉');
-      navigate('/game');
-    } else {
-      toast.error('Invalid username or password');
+    try {
+      const res = await fetch(`${backendURL}login.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginData),
+      });
+      const data = await res.json();
+
+      if (data.status === 'success') {
+        toast.success('Login successful 🎉');
+        localStorage.setItem('banamatix_current_user', JSON.stringify(data.user));
+        navigate('/game');
+      } else {
+        toast.error(data.message);
+      }
+    } catch (err) {
+      toast.error('Server connection error');
     }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!registerData.username || !registerData.email || !registerData.password) {
       toast.error('Please fill in all fields');
       return;
@@ -49,26 +55,23 @@ export function LoginPage() {
       return;
     }
 
-    const users = JSON.parse(localStorage.getItem('banamatix_users') || '{}');
-    
-    if (users[registerData.username]) {
-      toast.error('Username already exists');
-      return;
+    try {
+      const res = await fetch(`${backendURL}register.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(registerData),
+      });
+      const data = await res.json();
+
+      if (data.status === 'success') {
+        toast.success('Registration successful 🎉');
+        navigate('/login');
+      } else {
+        toast.error(data.message);
+      }
+    } catch (err) {
+      toast.error('Server connection error');
     }
-
-    users[registerData.username] = {
-      email: registerData.email,
-      password: registerData.password,
-      highScore: 0,
-      coins: 0,
-      items: [],
-      themes: ['default']
-    };
-
-    localStorage.setItem('banamatix_users', JSON.stringify(users));
-    localStorage.setItem('banamatix_current_user', registerData.username);
-    toast.success('Registration successful! 🎉');
-    navigate('/game');
   };
 
   return (
@@ -174,12 +177,6 @@ export function LoginPage() {
           </Card>
         </TabsContent>
       </Tabs>
-
-      <div className="text-center mt-6">
-        <Button variant="ghost" onClick={() => navigate('/')}>
-          Back to Home
-        </Button>
-      </div>
     </div>
   );
 }

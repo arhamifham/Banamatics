@@ -4,103 +4,89 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Coins, Crown, Sword, ChefHat, Sparkles, Shield, Wand2, ArrowLeft, Gamepad2 } from 'lucide-react';
+import { Coins, Sparkles, Shield, Crown, Sword, ChefHat, Wand2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
-
-interface StoreItem {
-  id: string;
-  name: string;
-  price: number;
-  icon: any;
-  type: 'decoration' | 'theme';
-  description: string;
-}
-
-const storeItems: StoreItem[] = [
-  { id: 'crown', name: 'Royal Crown', price: 50, icon: Crown, type: 'decoration', description: 'Show your royal status!' },
-  { id: 'sword', name: 'Legendary Sword', price: 75, icon: Sword, type: 'decoration', description: 'For true warriors!' },
-  { id: 'chef-hat', name: 'Chef Hat', price: 40, icon: ChefHat, type: 'decoration', description: 'Cook up some math!' },
-  { id: 'shield', name: 'Golden Shield', price: 60, icon: Shield, type: 'decoration', description: 'Defend your high score!' },
-  { id: 'wand', name: 'Magic Wand', price: 80, icon: Wand2, type: 'decoration', description: 'Cast math spells!' },
-  { id: 'sparkles', name: 'Sparkle Effect', price: 30, icon: Sparkles, type: 'decoration', description: 'Add some shine!' },
-];
-
-const themes = [
-  { id: 'ocean', name: 'Ocean Blue', price: 100, description: 'Dive into the deep blue sea' },
-  { id: 'forest', name: 'Forest Green', price: 100, description: 'Nature-inspired calm' },
-  { id: 'sunset', name: 'Sunset Orange', price: 120, description: 'Warm and vibrant colors' },
-  { id: 'galaxy', name: 'Galaxy Purple', price: 150, description: 'Explore the cosmos' },
-  { id: 'candy', name: 'Candy Land', price: 130, description: 'Sweet and colorful' },
-];
 
 export function StorePage() {
   const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState('');
   const [coins, setCoins] = useState(0);
   const [ownedItems, setOwnedItems] = useState<string[]>([]);
   const [ownedThemes, setOwnedThemes] = useState<string[]>(['default']);
 
+  const API_BASE = "http://localhost:8001/banamatix_backend";
+
+  // 🧠 Load user from localStorage on mount
   useEffect(() => {
-    const user = localStorage.getItem('banamatix_current_user');
-    if (!user) {
+    const stored = JSON.parse(localStorage.getItem('banamatix_current_user') || '{}');
+    if (!stored.username) {
       navigate('/login');
       return;
     }
-    setCurrentUser(user);
 
-    const users = JSON.parse(localStorage.getItem('banamatix_users') || '{}');
-    if (users[user]) {
-      setCoins(users[user].coins || 0);
-      setOwnedItems(users[user].items || []);
-      setOwnedThemes(users[user].themes || ['default']);
-    }
+    setUser(stored);
+    setCurrentUser(stored.username);
+    setCoins(stored.coins || 0);
+    setOwnedThemes(stored.theme ? [stored.theme] : ['default']);
   }, [navigate]);
 
-  const purchaseItem = (item: StoreItem) => {
-    if (coins < item.price) {
-      toast.error('Not enough banana coins! 🍌');
-      return;
-    }
+  // 🔁 Update backend when user data changes
+  const updateUserData = async (updates: any) => {
+    const updated = { ...user, ...updates };
+    localStorage.setItem('banamatix_current_user', JSON.stringify(updated));
+    setUser(updated);
 
-    if (ownedItems.includes(item.id)) {
-      toast.error('You already own this item!');
-      return;
-    }
-
-    const users = JSON.parse(localStorage.getItem('banamatix_users') || '{}');
-    if (users[currentUser]) {
-      users[currentUser].coins = coins - item.price;
-      users[currentUser].items = [...ownedItems, item.id];
-      localStorage.setItem('banamatix_users', JSON.stringify(users));
-      
-      setCoins(coins - item.price);
-      setOwnedItems([...ownedItems, item.id]);
-      toast.success(`Purchased ${item.name}! 🎉`);
+    try {
+      await fetch(`${API_BASE}/update_user.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated),
+      });
+    } catch {
+      toast.error("⚠️ Failed to sync with server");
     }
   };
 
-  const purchaseTheme = (theme: { id: string; name: string; price: number; description: string }) => {
-    if (coins < theme.price) {
-      toast.error('Not enough banana coins! 🍌');
-      return;
-    }
+  // 🛍️ Purchase item logic
+  const purchaseItem = (item: any) => {
+    if (coins < item.price) return toast.error("Not enough coins!");
+    if (ownedItems.includes(item.id)) return toast.error("Already owned!");
 
-    if (ownedThemes.includes(theme.id)) {
-      toast.error('You already own this theme!');
-      return;
-    }
-
-    const users = JSON.parse(localStorage.getItem('banamatix_users') || '{}');
-    if (users[currentUser]) {
-      users[currentUser].coins = coins - theme.price;
-      users[currentUser].themes = [...ownedThemes, theme.id];
-      localStorage.setItem('banamatix_users', JSON.stringify(users));
-      
-      setCoins(coins - theme.price);
-      setOwnedThemes([...ownedThemes, theme.id]);
-      toast.success(`Unlocked ${theme.name} theme! 🎨`);
-    }
+    const newCoins = coins - item.price;
+    const newItems = [...ownedItems, item.id];
+    setCoins(newCoins);
+    setOwnedItems(newItems);
+    updateUserData({ coins: newCoins, items: JSON.stringify(newItems) });
+    toast.success(`Purchased ${item.name}! 🎉`);
   };
+
+  // 🎨 Purchase theme logic
+  const purchaseTheme = (theme: any) => {
+    if (coins < theme.price) return toast.error("Not enough coins!");
+    if (ownedThemes.includes(theme.id)) return toast.error("Already unlocked!");
+
+    const newCoins = coins - theme.price;
+    const newThemes = [...ownedThemes, theme.id];
+    setCoins(newCoins);
+    setOwnedThemes(newThemes);
+    updateUserData({ coins: newCoins, theme: theme.id });
+    toast.success(`Theme '${theme.name}' unlocked! 🌈`);
+  };
+
+  // 🪙 Store items
+  const storeItems = [
+    { id: 'sword', name: 'Golden Sword', price: 50, description: 'A shiny banana sword.', icon: Sword },
+    { id: 'shield', name: 'Banana Shield', price: 40, description: 'Protects your bananas.', icon: Shield },
+    { id: 'chef', name: 'Chef Hat', price: 30, description: 'Banana cooking master.', icon: ChefHat },
+    { id: 'wand', name: 'Magic Wand', price: 70, description: 'Turn bananas into gold.', icon: Wand2 },
+  ];
+
+  const themes = [
+    { id: 'default', name: 'Default Theme', price: 0, description: 'Classic banana vibe.' },
+    { id: 'dark', name: 'Dark Jungle', price: 100, description: 'Play in banana night mode.' },
+    { id: 'royal', name: 'Royal Banana', price: 150, description: 'Golden royal theme.', icon: Crown },
+  ];
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -135,7 +121,7 @@ export function StorePage() {
             {storeItems.map((item) => {
               const Icon = item.icon;
               const owned = ownedItems.includes(item.id);
-              
+
               return (
                 <Card key={item.id} className={`bg-white/90 backdrop-blur ${owned ? 'border-green-500 border-2' : ''}`}>
                   <CardHeader>
@@ -171,7 +157,7 @@ export function StorePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {themes.map((theme) => {
               const owned = ownedThemes.includes(theme.id);
-              
+
               return (
                 <Card key={theme.id} className={`bg-white/90 backdrop-blur ${owned ? 'border-green-500 border-2' : ''}`}>
                   <CardHeader>
