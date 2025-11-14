@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -13,6 +13,52 @@ export function LoginPage() {
   const [registerData, setRegisterData] = useState({ username: '', email: '', password: '', confirmPassword: '' });
 
   const backendURL = 'http://localhost:8001/banamatix_backend/';
+
+  const GOOGLE_CLIENT_ID = "755334656652-gsegqbdf3qdqj7m4iltkdhqf7oanq37r.apps.googleusercontent.com";
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+    if (window.google) {
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleResponse,
+      });
+  
+      window.google.accounts.id.renderButton(
+        document.getElementById("googleSignInDiv"),
+        {
+          theme: "outline",
+          size: "large",
+          shape: "pill",
+        }
+      );
+      clearInterval(interval);
+     }
+    }, 500);
+  }, []);
+
+  function handleGoogleResponse(response) {
+    const jwt = response.credential;
+  
+    // send google token to backend for verification
+    fetch("http://localhost:8001/banamatix_backend/google_login.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: jwt }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          localStorage.setItem(
+            "banamatix_current_user",
+            JSON.stringify(data.user)
+          );
+          navigate("/game");
+        } else {
+          toast.error("Google login failed");
+        }
+      });
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,6 +160,7 @@ export function LoginPage() {
                     placeholder="Enter your password"
                   />
                 </div>
+                <div id="googleSignInDiv"></div>
                 <Button type="submit" className="w-full bg-yellow-500 hover:bg-yellow-600 text-black">
                   Login
                 </Button>

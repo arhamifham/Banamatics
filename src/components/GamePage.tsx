@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
@@ -16,17 +17,61 @@ interface Quiz {
 export function GamePage() {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [answer, setAnswer] = useState('');
+  const [currentUser,setCurrentUser] = useState('');
   const [attempts, setAttempts] = useState(3);
   const [score, setScore] = useState(0);
+  const [coins, setCoins] = useState(0);
+
+
+  const navigate = useNavigate();
+
+  const storeRedirect = () => {
+    const user = JSON.parse(localStorage.getItem("banamatix_current_user") || "{}");
+    
+    if (!user.username) {
+      navigate("/login");
+    } else {
+      navigate("/store");
+    }
+    
+  };
 
   useEffect(() => {
+    if (score > 0 && score % 30 === 0) {
+      const user = JSON.parse(localStorage.getItem("banamatix_current_user") || "{}");
+
+      const newCoins = (user.coins || 0) + 1;
+
+      setCoins(newCoins);
+
+      const updatedUser = { ...user, coins: newCoins };
+      localStorage.setItem("banamatix_current_user", JSON.stringify(updatedUser));
+  
+      fetch("http://localhost:8001/banamatix_backend/update_user.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedUser),
+      });
+  
+      toast.success("🍌 You earned 1 Banana Coin!");
+    }
+  }, [score]);
+  
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("banamatix_current_user") || "{}");
+  if(user.username){
+    setCurrentUser(user.username);
+    setCoins(user.coins || 0);
+    }
+
     async function fetchQuiz() {
       const newQuiz = await generateQuiz();
       setQuiz(newQuiz);
     }
     fetchQuiz();
+    
   }, []);
-  
+
 
   async function loadQuiz() {
     const newQuiz = await generateQuiz();
@@ -41,7 +86,7 @@ export function GamePage() {
 
     if (parseInt(answer) === quiz?.answer) {
       toast.success('Correct! 🎉');
-      setScore(score + 10);
+      setScore(prev => prev + 10);
       setAnswer('');
       loadQuiz();
     } else {
@@ -63,6 +108,18 @@ export function GamePage() {
       <div className="text-center mb-8">
         <h1 className="text-6xl mb-4">🍌 BANAMATIX 🍌</h1>
         <p className="text-xl text-gray-700">Solve the banana puzzle from the image below!</p>
+        <div >
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <p className="text-gray-700">Welcome, {currentUser}!</p>
+            </div>
+            <Button onClick={storeRedirect}
+              className="w-fit rounded-full border-2 hover:bg-white-600"
+              variant="outline">
+              Store
+            </Button>
+          </div>
+        </div>
       </div>
 
       <Card className="mb-6 bg-white/90 backdrop-blur">
@@ -82,9 +139,12 @@ export function GamePage() {
               />
             ))}
           </div>
-          <div className="text-center mb-4">
+          <div className="flex justify-center gap-4 mb-4">
             <Badge variant="outline" className="text-lg px-4 py-2">
               Score: {score}
+            </Badge>
+            <Badge variant="secondary" className="text-lg px-4 py-2 flex items-center gap-2">
+              🍌 {coins}
             </Badge>
           </div>
         </CardContent>
