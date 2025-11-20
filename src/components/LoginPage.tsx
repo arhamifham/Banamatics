@@ -12,9 +12,35 @@ export function LoginPage() {
   const [loginData, setLoginData] = useState({ username: '', password: '' });
   const [registerData, setRegisterData] = useState({ username: '', email: '', password: '', confirmPassword: '' });
 
+  const [passwordError, setPasswordError] = useState("");
+
   const backendURL = 'http://localhost:8001/banamatix_backend/';
 
   const GOOGLE_CLIENT_ID = "755334656652-gsegqbdf3qdqj7m4iltkdhqf7oanq37r.apps.googleusercontent.com";
+
+  const validatePassword = (password: string) => {
+    const minLength = /.{8,}/;
+    const upper = /[A-Z]/;
+    const lower = /[a-z]/;
+    const number = /[0-9]/;
+    const special = /[!@#$%^&*(),.?":{}|<>]/;
+   
+      if (password.length < 8) return "Must be at least 8 characters";
+      if (!/[A-Z]/.test(password)) return "Must contain an uppercase letter (A-Z)";
+      if (!/[a-z]/.test(password)) return "Must contain a lowercase letter (a-z)";
+      if (!/[0-9]/.test(password)) return "Must contain a number (0-9)";
+      if (!/[!@#$%^&*(),.?\":{}|<>]/.test(password)) return "Must contain a special symbol (!@#$% etc)";
+      return "";
+    
+    return (
+      minLength.test(password) &&
+      upper.test(password) &&
+      lower.test(password) &&
+      number.test(password) &&
+      special.test(password)
+    );
+  };
+  
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -95,6 +121,8 @@ export function LoginPage() {
       toast.error('Please fill in all fields');
       return;
     }
+
+   
 
     if (registerData.password !== registerData.confirmPassword) {
       toast.error('Passwords do not match');
@@ -197,15 +225,24 @@ export function LoginPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="register-password">Password</Label>
-                  <Input
-                    id="register-password"
-                    type="password"
-                    value={registerData.password}
-                    onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                    placeholder="Create a password"
-                  />
-                </div>
+  <Label htmlFor="register-password">Password</Label>
+  <Input
+    id="register-password"
+    type="password"
+    value={registerData.password}
+    onChange={(e) => {
+      const newPass = e.target.value;
+      setRegisterData({ ...registerData, password: newPass });
+      setPasswordError(validatePassword(newPass));
+    }}
+    placeholder="Create a password"
+  />
+
+  {passwordError && (
+    <p className="text-sm text-red-600 mt-1">{passwordError}</p>
+  )}
+</div>
+
                 <div className="space-y-2">
                   <Label htmlFor="register-confirm">Confirm Password</Label>
                   <Input
