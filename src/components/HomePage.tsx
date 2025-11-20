@@ -91,7 +91,6 @@ export function HomePage() {
 
           <div className="mt-6 space-y-4">
             <div>
-              <label className="block mb-2">Your Answer:</label>
               <Input
                 type="number"
                 value={answer}
