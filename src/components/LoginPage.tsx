@@ -122,8 +122,6 @@ export function LoginPage() {
       return;
     }
 
-   
-
     if (registerData.password !== registerData.confirmPassword) {
       toast.error('Passwords do not match');
       return;

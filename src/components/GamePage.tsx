@@ -12,7 +12,9 @@ import {
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import { Badge } from './ui/badge';
 import { Heart, RotateCcw } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { THEMES } from "./themeConfig";
+import { useTheme } from './ThemeContext';
+import { toast } from 'sonner';
 import { QuizImage } from './QuizImage';
 import { generateQuiz } from './utils/quizGenerator';
 
@@ -28,6 +30,7 @@ export function GamePage() {
   const [attempts, setAttempts] = useState(3);
   const [score, setScore] = useState(0);
   const [coins, setCoins] = useState(0);
+  const { applyTheme } = useTheme();
   const [gameOver, setGameOver] = useState(false);
 
   const navigate = useNavigate();
@@ -66,23 +69,54 @@ export function GamePage() {
   }, [score]);
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('banamatix_current_user') || '{}');
-    if (user.username) {
-      setCurrentUser(user.username);
+    const user = JSON.parse(localStorage.getItem("banamatix_current_user") || "{}");
+    if (user) {
+      setCurrentUser(user.username || "");
       setCoins(user.coins || 0);
+      if (user.themes_s) {
+        const saved = THEMES.find((t) => t.id === String(user.themes_s));
+        if (saved) {
+          applyTheme(saved);
+          applyBackground(saved);
+        }
+      }
     }
+  }, []);
 
+  const applyBackground = (selected: any) => {
+    if (!selected) return;
+  
+    if (selected.backgroundType === "solid") {
+      document.body.style.background = selected.backgroundValue;
+    } 
+    else if (selected.backgroundType === "gradient") {
+      document.body.style.background = selected.backgroundValue;
+    } 
+    else if (selected.backgroundType === "image") {
+      document.body.style.backgroundImage = `url(${selected.backgroundValue})`;
+      document.body.style.backgroundSize = "1500px";  
+      document.body.style.backgroundRepeat = "repeat-y";
+      document.body.style.backgroundAttachment = "fixed"; 
+    }
+  };
+
+  
+  
+  
+    
+  useEffect(() => {
     async function fetchQuiz() {
       try {
         const newQuiz = await generateQuiz();
         setQuiz(newQuiz);
       } catch (err) {
-        console.error('generateQuiz failed', err);
-        setQuiz({ image: '🍌 + 2 = 5', answer: 3 });
+        console.error("generateQuiz failed", err);
+        setQuiz({ image: "🍌 + 2 = 5", answer: 3 });
       }
     }
     fetchQuiz();
   }, []);
+  
 
   async function loadQuiz() {
     try {
@@ -171,20 +205,19 @@ export function GamePage() {
         </div>
       </div>
     </Dialog>
-      <div className={`container mx-auto px-4 py-8 max-w-4xl`}>
+    <div className="theme-wrapper container mx-auto px-4 py-8 max-w-4xl">
         <div className="text-center mb-8">
-          <h1 className="text-6xl mb-4">🍌 BANAMATIX 🍌</h1>
-          <p className="text-xl text-gray-700">Solve the banana puzzle from the image below!</p>
+          <h1 className="text-6xl mb-4 title">🍌 BANAMATIX 🍌</h1>
+          <p className="text-xl text-gray-700 title">Solve the banana puzzle from the image below!</p>
           <div>
             <div className="flex justify-between items-center mb-8">
               <div>
-                <p className="text-gray-700">Welcome, {currentUser}!</p>
+                <p className="text-gray-700 title">Welcome, {currentUser}!</p>
               </div>
               <Button
                 onClick={storeRedirect}
-                className="w-fit rounded-full border-2 hover:bg-white-600"
-                variant="outline"
-              >
+                className="w-fit rounded-full border-2 hover:bg-white-600 hover:bg-accent hover:text-accent-foreground dark:border-input"
+                variant="outline">
                 Store
               </Button>
             </div>

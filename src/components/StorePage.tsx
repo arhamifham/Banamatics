@@ -1,92 +1,152 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from './ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Badge } from './ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Coins, Sparkles, Shield, Crown, Sword, ChefHat, Wand2, ArrowLeft, Icon } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "./ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { Badge } from "./ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Coins, Sparkles, Shield, Crown, Sword, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
+import { THEMES } from "./themeConfig"; 
+import { useTheme } from "./ThemeContext";
 
 export function StorePage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
-  const [currentUser, setCurrentUser] = useState('');
+  const [currentUser, setCurrentUser] = useState("");
   const [coins, setCoins] = useState(0);
-  const [ownedItems, setOwnedItems] = useState<string[]>([]);
-  const [ownedThemes, setOwnedThemes] = useState<string[]>(['default']);
+  const { applyTheme } = useTheme();
+  const [ownedThemes, setOwnedThemes] = useState<string[]>(["default"]);
 
   const API_BASE = "http://localhost:8001/banamatix_backend";
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem('banamatix_current_user') || '{}');
+    const stored = JSON.parse(localStorage.getItem("banamatix_current_user") || "{}");
     if (!stored.username) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
 
     setUser(stored);
     setCurrentUser(stored.username);
     setCoins(stored.coins || 0);
-    setOwnedThemes(stored.theme ? [stored.theme] : ['default']);
+    setOwnedThemes(stored.themes ? stored.themes.split(",") : ["default"]);
+
+    // apply selected theme from user (themes_s)
+    if (stored.themes_s) {
+      const saved = THEMES.find((t) => t.id === String(stored.themes_s));
+      if (saved) applyTheme(saved);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
-  // 🔁 Update backend when user data changes
-  const updateUserData = async (updates: any) => {
-    const updated = { ...user, ...updates };
-    localStorage.setItem('banamatix_current_user', JSON.stringify(updated));
-    setUser(updated);
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("banamatix_current_user") || "{}");
+  
+    if (user.themes_s) {
+      const selected = THEMES.find((t) => t.id === user.themes_s);
+      if (selected) {
+        if (selected.backgroundType === "image") {
+          document.body.style.backgroundImage = `url(${selected.backgroundValue})`;
+          document.body.style.backgroundColor = "transparent";
+        } else if (selected.backgroundType === "solid") {
+          document.body.style.backgroundImage = "";
+          document.body.style.backgroundColor = selected.backgroundValue;
+        } else if (selected.backgroundType === "gradient") {
+          document.body.style.backgroundImage = selected.backgroundValue;
+        }        
+      }
+    }
+  
+    return () => {
+      document.body.style.background = ""; // reset on exit page
+    };
+  }, []);
+  
+
+  const applyBackground = (selected: any) => {
+    if (!selected) return;
+  
+    if (selected.backgroundType === "solid") {
+      document.body.style.background = selected.backgroundValue;
+    } 
+    else if (selected.backgroundType === "gradient") {
+      document.body.style.background = selected.backgroundValue;
+    } 
+    else if (selected.backgroundType === "image") {
+      document.body.style.backgroundImage = `url(${selected.backgroundValue})`;
+      document.body.style.backgroundSize = "1500px auto";
+      document.body.style.backgroundRepeat = "repeat-y";
+      document.body.style.backgroundPosition = "center top";
+      document.body.style.backgroundAttachment = "scroll";
+    }
+  };
+
+  // update user on backend and localStorage
+  const updateUserData = async (updated: any) => {
+    const updatedUser = { ...user, ...updated };
+
+    localStorage.setItem("banamatix_current_user", JSON.stringify(updatedUser));
+    setUser(updatedUser);
 
     try {
       await fetch(`${API_BASE}/update_user.php`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
+        body: JSON.stringify(updatedUser),
       });
     } catch {
       toast.error("⚠️ Failed to sync with server");
     }
   };
 
-  // 🛍️ Purchase item logic
-  const purchaseItem = (item: any) => {
-    if (coins < item.price) return toast.error("Not enough coins!");
-    if (ownedItems.includes(item.id)) return toast.error("Already owned!");
+  const applySelectedTheme = async (themeId: string) => {
+    const selected = THEMES.find((t) => t.id === themeId);
+    if (!selected) return;
 
-    const newCoins = coins - item.price;
-    const newItems = [...ownedItems, item.id];
-    setCoins(newCoins);
-    setOwnedItems(newItems);
-    updateUserData({ coins: newCoins, items: JSON.stringify(newItems) });
-    toast.success(`Purchased ${item.name}! 🎉`);
+    applyTheme(selected);
+    applyBackground(selected);
+    try {
+      await fetch(`${API_BASE}/update_theme.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: currentUser, theme: themeId }),
+      });
+    } catch {
+    }
+
+    // update local and backend user record for selected theme
+    updateUserData({ themes_s: themeId });
+    toast.success(`Theme applied: ${selected.name} 🎨`);
   };
 
-  // 🎨 Purchase theme logic
-  const purchaseTheme = (theme: any) => {
-    if (coins < theme.price) return toast.error("Not enough coins!");
-    if (ownedThemes.includes(theme.id)) return toast.error("Already unlocked!");
+  
+  const purchaseTheme = (t: any) => {
+    if (coins < t.price) return toast.error("Not enough coins!");
+    if (ownedThemes.includes(t.id)) return toast.error("Already unlocked!");
 
-    const newCoins = coins - theme.price;
-    const newThemes = [...ownedThemes, theme.id];
+    const newCoins = coins - t.price;
+    const newThemes = [...ownedThemes, t.id];
+
     setCoins(newCoins);
     setOwnedThemes(newThemes);
-    updateUserData({ coins: newCoins, theme: theme.id });
-    toast.success(`Theme '${theme.name}' unlocked! 🌈`);
+
+    updateUserData({
+      coins: newCoins,
+      themes: newThemes.join(","),
+      themes_s: t.id, // optionally auto-select after buying
+    });
+
+    toast.success(`Theme '${t.name}' unlocked! 🌈`);
   };
 
-  const themes = [
-    { id: 'default', name: 'Default Theme', price: 0, description: 'Classic banana vibe.', icon: Shield },
-    { id: 'dark', name: 'Dark Jungle', price: 100, description: 'Play in banana night mode.', icon: Sword },
-    { id: 'royal', name: 'Royal Banana', price: 150, description: 'Golden royal theme.', icon: Crown },
-  ];
-
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="theme-wrapper container mx-auto px-4 py-8 max-w-4xl">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-5xl mb-2">🍌 Banana Store 🍌</h1>
-          <p className="text-gray-700">Welcome, {currentUser}!</p>
+          <h1 className="text-5xl mb-2 title">🍌 Banana Store 🍌</h1>
+          <p className="text-gray-700 title">Welcome, {currentUser}!</p>
         </div>
-        <Button variant="outline" onClick={() => navigate('/game')}>
+        <Button variant="outline" onClick={() => navigate("/game")}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Game
         </Button>
@@ -108,31 +168,26 @@ export function StorePage() {
 
         <TabsContent value="themes" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {themes.map((theme) => {
-              const owned = ownedThemes.includes(theme.id);
-
+            {THEMES.map((t) => {
+              const owned = ownedThemes.includes(t.id);
               return (
-                <Card key={theme.id} className={`bg-white/90 backdrop-blur ${owned ? 'border-green-500 border-2' : ''}`}>
+                <Card key={t.id} className={`bg-white/90 backdrop-blur ${owned ? "border-green-500 border-2" : ""}`}>
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <Sparkles className="w-12 h-12 text-purple-600" />
                       {owned && <Badge variant="secondary">UNLOCKED</Badge>}
                     </div>
-                    <CardTitle>{theme.name}</CardTitle>
-                    <CardDescription>{theme.description}</CardDescription>
+                    <CardTitle>{t.name}</CardTitle>
+                    <CardDescription>{t.description}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Coins className="w-5 h-5 text-yellow-600" />
-                        <span className="text-xl">{theme.price}</span>
+                        <span className="text-xl">{t.price}</span>
                       </div>
-                      <Button
-                        onClick={() => purchaseTheme(theme)}
-                        disabled={owned}
-                        className="bg-yellow-500 hover:bg-yellow-600 text-black"
-                      >
-                        {owned ? 'Unlocked' : 'Unlock'}
+                      <Button onClick={() => (owned ? applySelectedTheme(t.id) : purchaseTheme(t))} className="bg-yellow-500 hover:bg-yellow-600 text-black">
+                        {owned ? "Apply Theme" : `Unlock (${t.price})`}
                       </Button>
                     </div>
                   </CardContent>

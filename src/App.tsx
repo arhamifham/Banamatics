@@ -4,9 +4,12 @@ import { LoginPage } from './components/LoginPage';
 import { GamePage } from './components/GamePage';
 import { StorePage } from './components/StorePage';
 import { Toaster } from './components/ui/sonner';
+import { ThemeProvider } from "./components/ThemeContext";
+
 
 export default function App() {
   return (
+    <ThemeProvider>
     <Router>
       <div className="min-h-screen bg-gradient-to-br from-yellow-100 via-orange-50 to-yellow-200">
         <Toaster />
@@ -19,5 +22,6 @@ export default function App() {
         </Routes>
       </div>
     </Router>
+    </ThemeProvider>
   );
 }

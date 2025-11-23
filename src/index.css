@@ -134,8 +134,17 @@
 
   body {
     line-height: inherit;
+    
   }
 
+  html[data-theme-bg-type="gradient"] .theme-wrapper {
+    background: var(--theme-bg-value);
+  }
+  
+  html[data-theme-bg-type="image"] .theme-wrapper {
+    background-image: var(--theme-bg-value);
+  }
+  
   hr {
     height: 0;
     color: inherit;
@@ -369,10 +378,25 @@
     }
   }
 
-  body {
-    background-color: var(--background);
-    color: var(--foreground);
+  h1.title {
+    color: var(--title-color) !important;
   }
+
+  p.title {
+    color: var(--title-color) !important;
+  }
+
+
+    body {
+      color: var(--text-color);
+      background-color: var(--bg-color);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      transition: background 0.4s ease;
+    }
+
 
   :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) h1 {
     font-size: var(--text-2xl);
@@ -1498,9 +1522,17 @@
   }
 }
 
+body {
+  transition: background 0.5s ease-in-out;
+}
+
+
 :root {
   --font-size: 16px;
-  --background: #ffed4d;
+  --background: #fff06c;
+  --bg-color: #fdf8e8;
+  --text-color: #000000;
+  --accent-color: #FFD600;
   --foreground: oklch(.145 0 0);
   --card: #fff;
   --card-foreground: oklch(.145 0 0);
@@ -1509,7 +1541,7 @@
   --primary: #030213;
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(.95 .0058 264.53);
-  --secondary-foreground: #030213;
+  --secondary-foreground: rgb(3, 2, 19);
   --muted: #ececf0;
   --muted-foreground: #717182;
   --accent: #e9ebef;
