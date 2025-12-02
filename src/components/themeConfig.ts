@@ -43,5 +43,20 @@ export const THEMES = [
       "--accent-color": "#e4b400",
       "--title-color": "#FFFFFF"
     }
+  },
+    {
+      id: "nature",
+      name: "royal green",
+      price: 150,
+      description: "natural greenish background",
+      icon: "crown",
+      backgroundType: "gradient",
+    backgroundValue: "linear-gradient(135deg, #081702, #0BDA51)", 
+      colors: {
+        "--bg-color": "#fff7d1",
+        "--text-color": "#444444",
+        "--accent-color": "#e4b400",
+        "--title-color": "#FFFFFF"
+      }
   }
 ];

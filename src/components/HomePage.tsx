@@ -22,7 +22,7 @@ export function HomePage() {
     }
     fetchQuiz();
   }, []);
-  
+
 
   async function loadQuiz() {
     const newQuiz = await generateQuiz();
@@ -38,7 +38,7 @@ export function HomePage() {
     }
 
     if (parseInt(answer) === quiz.answer) {
-      toast.success(`Correct answer! 🎉 ${attempts-1} attempts left`);
+      toast.success(`Correct answer! 🎉 ${attempts - 1} attempts left`);
       setScore(score + 10);
       loadQuiz();
       setAnswer('');
@@ -48,11 +48,11 @@ export function HomePage() {
       toast.error(`Wrong answer! ${attempts - 1} attempts left`);
       setAnswer('');
     }
-      if (attempts - 1 === 0) {
-        toast.error('Trial ended! Please login to continue playing.');
-        setTimeout(() => navigate('/login'), 2000);
-      }
-    
+    if (attempts - 1 === 0) {
+      toast.error('Trial ended! Please login to continue playing.');
+      setTimeout(() => navigate('/login'), 2000);
+    }
+
   };
 
   return (

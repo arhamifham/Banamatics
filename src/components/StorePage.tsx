@@ -6,7 +6,7 @@ import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Coins, Sparkles, Shield, Crown, Sword, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import { THEMES } from "./themeConfig"; 
+import { THEMES } from "./themeConfig";
 import { useTheme } from "./ThemeContext";
 
 export function StorePage() {
@@ -31,47 +31,41 @@ export function StorePage() {
     setCoins(stored.coins || 0);
     setOwnedThemes(stored.themes ? stored.themes.split(",") : ["default"]);
 
-    // apply selected theme from user (themes_s)
     if (stored.themes_s) {
       const saved = THEMES.find((t) => t.id === String(stored.themes_s));
       if (saved) applyTheme(saved);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [navigate]);
 
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("banamatix_current_user") || "{}");
-  
-    if (user.themes_s) {
-      const selected = THEMES.find((t) => t.id === user.themes_s);
-      if (selected) {
-        if (selected.backgroundType === "image") {
-          document.body.style.backgroundImage = `url(${selected.backgroundValue})`;
-          document.body.style.backgroundColor = "transparent";
-        } else if (selected.backgroundType === "solid") {
-          document.body.style.backgroundImage = "";
-          document.body.style.backgroundColor = selected.backgroundValue;
-        } else if (selected.backgroundType === "gradient") {
-          document.body.style.backgroundImage = selected.backgroundValue;
-        }        
-      }
-    }
-  
-    return () => {
-      document.body.style.background = ""; // reset on exit page
-    };
-  }, []);
-  
 
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+
+    if (!token) {
+      navigate("/login");
+    }
+  }, [navigate]);
+
+
+
+  const logout = () => {
+    localStorage.removeItem('banamatix_current_user');
+    localStorage.removeItem('auth_token');
+    navigate('/login');
+  };
+
+
+  //AI generated theme function code
   const applyBackground = (selected: any) => {
     if (!selected) return;
-  
+
     if (selected.backgroundType === "solid") {
       document.body.style.background = selected.backgroundValue;
-    } 
+    }
     else if (selected.backgroundType === "gradient") {
       document.body.style.background = selected.backgroundValue;
-    } 
+    }
     else if (selected.backgroundType === "image") {
       document.body.style.backgroundImage = `url(${selected.backgroundValue})`;
       document.body.style.backgroundSize = "1500px auto";
@@ -99,6 +93,7 @@ export function StorePage() {
     }
   };
 
+  //Apply the selected theme
   const applySelectedTheme = async (themeId: string) => {
     const selected = THEMES.find((t) => t.id === themeId);
     if (!selected) return;
@@ -119,7 +114,7 @@ export function StorePage() {
     toast.success(`Theme applied: ${selected.name} 🎨`);
   };
 
-  
+  //Purchase and update backend for the theme
   const purchaseTheme = (t: any) => {
     if (coins < t.price) return toast.error("Not enough coins!");
     if (ownedThemes.includes(t.id)) return toast.error("Already unlocked!");
@@ -133,7 +128,7 @@ export function StorePage() {
     updateUserData({
       coins: newCoins,
       themes: newThemes.join(","),
-      themes_s: t.id, // optionally auto-select after buying
+      themes_s: t.id,
     });
 
     toast.success(`Theme '${t.name}' unlocked! 🌈`);

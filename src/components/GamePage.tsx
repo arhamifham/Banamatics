@@ -35,6 +35,30 @@ export function GamePage() {
 
   const navigate = useNavigate();
 
+  //AI generated authentication tool code
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    fetch("http://localhost:8001/banamatix_backend/verify_token.php", {
+      method: "GET",
+      headers: { Authorization: token }
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.valid) {
+          localStorage.clear();
+          navigate("/login");
+        }
+      });
+  }, [navigate]);
+
+
+
+
   const storeRedirect = () => {
     const user = JSON.parse(localStorage.getItem('banamatix_current_user') || '{}');
 
@@ -68,6 +92,7 @@ export function GamePage() {
     }
   }, [score]);
 
+
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("banamatix_current_user") || "{}");
     if (user) {
@@ -83,27 +108,26 @@ export function GamePage() {
     }
   }, []);
 
+
   const applyBackground = (selected: any) => {
     if (!selected) return;
-  
+
     if (selected.backgroundType === "solid") {
       document.body.style.background = selected.backgroundValue;
-    } 
+    }
     else if (selected.backgroundType === "gradient") {
       document.body.style.background = selected.backgroundValue;
-    } 
+    }
     else if (selected.backgroundType === "image") {
       document.body.style.backgroundImage = `url(${selected.backgroundValue})`;
-      document.body.style.backgroundSize = "1500px";  
+      document.body.style.backgroundSize = "1500px";
       document.body.style.backgroundRepeat = "repeat-y";
-      document.body.style.backgroundAttachment = "fixed"; 
+      document.body.style.backgroundAttachment = "fixed";
     }
   };
 
-  
-  
-  
-    
+
+
   useEffect(() => {
     async function fetchQuiz() {
       try {
@@ -116,17 +140,8 @@ export function GamePage() {
     }
     fetchQuiz();
   }, []);
-  
 
-  async function loadQuiz() {
-    try {
-      const newQuiz = await generateQuiz();
-      setQuiz(newQuiz);
-    } catch (err) {
-      console.error('generateQuiz failed', err);
-      setQuiz({ image: '🍌 + 2 = 5', answer: 3 });
-    }
-  }
+
 
   const handleSubmit = () => {
     if (!answer) {
@@ -158,68 +173,86 @@ export function GamePage() {
     setScore(0);
     setAnswer('');
     setGameOver(false);
-    loadQuiz();
   };
 
   const logout = () => {
     localStorage.removeItem('banamatix_current_user');
+    localStorage.removeItem('auth_token');
+    document.body.style.background = "";
+    document.body.style.backgroundImage = "";
+    document.body.style.backgroundSize = "";
+    document.body.style.backgroundRepeat = "";
+    document.body.style.backgroundAttachment = "";
     navigate('/login');
   };
 
-      
-  
+
+
   return (
     <>
 
-    <Dialog open={gameOver} onClose={() => {}} style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999}}>
-      <DialogBackdrop className="fixed inset-0 bg-black/60 backdrop-blur-md" />
+      <Dialog open={gameOver} onClose={() => { }} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }}>
+        <DialogBackdrop className="fixed inset-0 bg-black/60 backdrop-blur-md" />
 
-      <div className="fixed inset-0 z-[10000] w-screen overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center p-4 text-center">
-          <DialogPanel style={{width: '100%',maxWidth: '448px',padding: '2rem',   textAlign: 'center',display: 'block',margin: '0 auto',
-          borderRadius: '1rem', backgroundColor: 'white',boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-          position: 'relative',transform: 'translateY(0)',overflow: 'hidden',}}>
-            <DialogTitle className="text-4xl font-bold text-red-600">
-              You Lost!
-            </DialogTitle>
+        <div className="fixed inset-0 z-[10000] w-screen overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <DialogPanel style={{
+              width: '100%', maxWidth: '448px', padding: '2rem', textAlign: 'center', display: 'block', margin: '0 auto',
+              borderRadius: '1rem', backgroundColor: 'white', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+              position: 'relative', transform: 'translateY(0)', overflow: 'hidden',
+            }}>
+              <DialogTitle className="text-4xl font-bold text-red-600">
+                You Lost!
+              </DialogTitle>
 
-            <p className="text-lg">
-              Correct answer was: <strong>{quiz?.answer}</strong>
-            </p>
+              <p className="text-lg">
+                Correct answer was: <strong>{quiz?.answer}</strong>
+              </p>
 
-            <div className="flex justify-center gap-4">
-              <Button
-                onClick={() => window.location.reload()} 
-                className="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 border"
-              >
-                <RotateCcw />
-              </Button>
-              <Button
-                onClick={logout}
-                className="bg-red-600 hover:bg-red-700 text-black px-4 py-2 border"
-              >
-                Logout
-              </Button>
-            </div>
-          </DialogPanel>
+              <div className="flex justify-center gap-4">
+                <Button
+                  onClick={() => window.location.reload()}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 border"
+                >
+                  <RotateCcw />
+                </Button>
+                <Button
+                  onClick={logout}
+                  className="bg-red-600 hover:bg-red-700 text-black px-4 py-2 border"
+                >
+                  Logout
+                </Button>
+              </div>
+            </DialogPanel>
+          </div>
         </div>
-      </div>
-    </Dialog>
-    <div className="theme-wrapper container mx-auto px-4 py-8 max-w-4xl">
+      </Dialog>
+      <div className="theme-wrapper container mx-auto px-4 py-8 max-w-4xl">
         <div className="text-center mb-8">
           <h1 className="text-6xl mb-4 title">🍌 BANAMATIX 🍌</h1>
           <p className="text-xl text-gray-700 title">Solve the banana puzzle from the image below!</p>
           <div>
             <div className="flex justify-between items-center mb-8">
+              <Button
+                onClick={logout}
+                variant="outline"
+                className="w-fit theme-button ml-4 rounded-full border-2 bg-red-600 hover:bg-white-600 hover:bg-accent hover:text-accent-foreground text-[var(--title-color)]"
+                style={{ color: "var(--title-color)", fontWeight: "600" }}>
+
+                Logout
+              </Button>
+
               <div>
                 <p className="text-gray-700 title">Welcome, {currentUser}!</p>
               </div>
               <Button
                 onClick={storeRedirect}
-                className="w-fit rounded-full border-2 hover:bg-white-600 hover:bg-accent hover:text-accent-foreground dark:border-input"
-                variant="outline">
+                className="w-fit theme-button ml-4 rounded-full border-2 bg-red-600 hover:bg-white-600 hover:bg-accent hover:text-accent-foreground text-[var(--title-color)]"
+                variant="outline"
+                style={{ color: "var(--title-color)", fontWeight: "600" }}>
                 Store
               </Button>
+
             </div>
           </div>
         </div>
@@ -276,7 +309,7 @@ export function GamePage() {
                 disabled={attempts === 0}
               >
                 Submit Answer
-              </Button> 
+              </Button>
             </div>
           </CardContent>
         </Card>
