@@ -134,6 +134,7 @@
 
   body {
     line-height: inherit;
+
     
   }
 
@@ -1526,11 +1527,18 @@ body {
   transition: background 0.5s ease-in-out;
 }
 
+.theme-button {
+  color: var(--title-color);
+}
+
+.theme-button:hover {
+  color: black !important;
+}
 
 :root {
   --font-size: 16px;
   --background: #fff06c;
-  --bg-color: #fdf8e8;
+  --bg-color: #dac931;
   --text-color: #000000;
   --accent-color: #FFD600;
   --foreground: oklch(.145 0 0);

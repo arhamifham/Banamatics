@@ -4,6 +4,26 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-W
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Credentials: true");
 
+if (password_verify($password, $user["password"])) {
+
+  // generate token
+  $token = bin2hex(random_bytes(16));
+
+  // save token
+  $update = $conn->prepare("UPDATE user_details SET token=? WHERE username=?");
+  $update->bind_param("ss", $token, $username);
+  $update->execute();
+
+  unset($user["password"]); // remove password from response
+  $user["token"] = $token;
+
+  echo json_encode([
+    "status" => "success",
+    "user" => $user,
+    "token" => $token
+  ]);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
   http_response_code(200);
   exit;

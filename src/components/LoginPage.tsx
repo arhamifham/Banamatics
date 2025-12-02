@@ -1,4 +1,4 @@
-import { useState,useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -24,14 +24,14 @@ export function LoginPage() {
     const lower = /[a-z]/;
     const number = /[0-9]/;
     const special = /[!@#$%^&*(),.?":{}|<>]/;
-   
-      if (password.length < 8) return "Must be at least 8 characters";
-      if (!/[A-Z]/.test(password)) return "Must contain an uppercase letter (A-Z)";
-      if (!/[a-z]/.test(password)) return "Must contain a lowercase letter (a-z)";
-      if (!/[0-9]/.test(password)) return "Must contain a number (0-9)";
-      if (!/[!@#$%^&*(),.?\":{}|<>]/.test(password)) return "Must contain a special symbol (!@#$% etc)";
-      return "";
-    
+
+    if (password.length < 8) return "Must be at least 8 characters";
+    if (!/[A-Z]/.test(password)) return "Must contain an uppercase letter (A-Z)";
+    if (!/[a-z]/.test(password)) return "Must contain a lowercase letter (a-z)";
+    if (!/[0-9]/.test(password)) return "Must contain a number (0-9)";
+    if (!/[!@#$%^&*(),.?\":{}|<>]/.test(password)) return "Must contain a special symbol (!@#$% etc)";
+    return "";
+
     return (
       minLength.test(password) &&
       upper.test(password) &&
@@ -40,32 +40,32 @@ export function LoginPage() {
       special.test(password)
     );
   };
-  
+
 
   useEffect(() => {
     const interval = setInterval(() => {
-    if (window.google) {
-      window.google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleGoogleResponse,
-      });
-  
-      window.google.accounts.id.renderButton(
-        document.getElementById("googleSignInDiv"),
-        {
-          theme: "outline",
-          size: "large",
-          shape: "pill",
-        }
-      );
-      clearInterval(interval);
-     }
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleResponse,
+        });
+
+        window.google.accounts.id.renderButton(
+          document.getElementById("googleSignInDiv"),
+          {
+            theme: "outline",
+            size: "large",
+            shape: "pill",
+          }
+        );
+        clearInterval(interval);
+      }
     }, 500);
   }, []);
 
   function handleGoogleResponse(response) {
     const jwt = response.credential;
-  
+
     // send google token to backend for verification
     fetch("http://localhost:8001/banamatix_backend/google_login.php", {
       method: "POST",
@@ -75,6 +75,7 @@ export function LoginPage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
+          localStorage.setItem("auth_token", data.token);
           localStorage.setItem(
             "banamatix_current_user",
             JSON.stringify(data.user)
@@ -105,6 +106,7 @@ export function LoginPage() {
       if (data.status === 'success') {
         toast.success('Login successful 🎉');
         localStorage.setItem('banamatix_current_user', JSON.stringify(data.user));
+        localStorage.setItem("auth_token", data.token);
         navigate('/game');
       } else {
         toast.error(data.message);
@@ -187,7 +189,7 @@ export function LoginPage() {
                   />
                 </div>
                 <div id="googleSignInDiv"></div>
-                <Button type="submit" className="w-full bg-yellow-500 hover:bg-yellow-600 text-black">
+                <Button type="submit" variant="outline" className="w-full bg-yellow-500 hover:bg-yellow-600 text-black">
                   Login
                 </Button>
               </form>
@@ -223,23 +225,23 @@ export function LoginPage() {
                   />
                 </div>
                 <div className="space-y-2">
-  <Label htmlFor="register-password">Password</Label>
-  <Input
-    id="register-password"
-    type="password"
-    value={registerData.password}
-    onChange={(e) => {
-      const newPass = e.target.value;
-      setRegisterData({ ...registerData, password: newPass });
-      setPasswordError(validatePassword(newPass));
-    }}
-    placeholder="Create a password"
-  />
+                  <Label htmlFor="register-password">Password</Label>
+                  <Input
+                    id="register-password"
+                    type="password"
+                    value={registerData.password}
+                    onChange={(e) => {
+                      const newPass = e.target.value;
+                      setRegisterData({ ...registerData, password: newPass });
+                      setPasswordError(validatePassword(newPass));
+                    }}
+                    placeholder="Create a password"
+                  />
 
-  {passwordError && (
-    <p className="text-sm text-red-600 mt-1">{passwordError}</p>
-  )}
-</div>
+                  {passwordError && (
+                    <p className="text-sm text-red-600 mt-1">{passwordError}</p>
+                  )}
+                </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="register-confirm">Confirm Password</Label>
@@ -251,7 +253,7 @@ export function LoginPage() {
                     placeholder="Confirm your password"
                   />
                 </div>
-                <Button type="submit" className="w-full bg-yellow-500 hover:bg-yellow-600 text-black">
+                <Button type="submit" variant="outline" className="w-full bg-yellow-500 hover:bg-yellow-600 text-black bo">
                   Register
                 </Button>
               </form>
