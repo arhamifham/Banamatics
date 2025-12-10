@@ -11,7 +11,7 @@ export default function App() {
   return (
     <ThemeProvider>
     <Router>
-      <div className="min-h-screen bg-gradient-to-br from-yellow-100 via-orange-50 to-yellow-200">
+      <div className="min-h-screen default-bg">
         <Toaster />
         <Routes>
           <Route path="/" element={<HomePage />} />

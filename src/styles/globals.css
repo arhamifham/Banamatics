@@ -187,3 +187,9 @@
 html {
   font-size: var(--font-size);
 }
+
+.default-bg {
+  background: linear-gradient(to bottom right, #fef3c7, #fef5e7, #fef08a);
+  transition: background 0.3s ease;
+}
+

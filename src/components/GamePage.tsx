@@ -141,7 +141,15 @@ export function GamePage() {
     fetchQuiz();
   }, []);
 
-
+  async function loadQuiz() {
+    try {
+    const newQuiz = await generateQuiz();
+    setQuiz(newQuiz);
+  }catch (err){
+    console.error("generateQuiz failed", err);
+    setQuiz({ image: "🍌 + 2 = 5", answer: 3 });
+  }
+ }
 
   const handleSubmit = () => {
     if (!answer) {
@@ -178,11 +186,8 @@ export function GamePage() {
   const logout = () => {
     localStorage.removeItem('banamatix_current_user');
     localStorage.removeItem('auth_token');
-    document.body.style.background = "";
-    document.body.style.backgroundImage = "";
-    document.body.style.backgroundSize = "";
-    document.body.style.backgroundRepeat = "";
-    document.body.style.backgroundAttachment = "";
+    // Reset to default theme
+    applyTheme(THEMES[0]);
     navigate('/login');
   };
 
