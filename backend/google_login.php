@@ -23,19 +23,19 @@ if ($payload) {
 
     // check if user exists or create new one
     require_once "db.php";
-    $stmt = $conn->prepare("SELECT * FROM users WHERE email=?");
+    $stmt = $conn->prepare("SELECT * FROM user_details WHERE email=?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $res = $stmt->get_result();
     
     if ($res->num_rows === 0) {
         // create new user
-        $insert = $conn->prepare("INSERT INTO users (username, email) VALUES (?, ?)");
+        $insert = $conn->prepare("INSERT INTO user_details (username, email) VALUES (?, ?)");
         $insert->bind_param("ss", $name, $email);
         $insert->execute();
     }
 
-    $stmt = $conn->prepare("SELECT * FROM users WHERE email=?");
+    $stmt = $conn->prepare("SELECT * FROM user_details WHERE email=?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $user = $stmt->get_result()->fetch_assoc();

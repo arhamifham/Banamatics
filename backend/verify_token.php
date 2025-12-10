@@ -5,7 +5,7 @@ include "db.php";
 $headers = apache_request_headers();
 $token = $headers["Authorization"] ?? "";
 
-$query = $conn->prepare("SELECT * FROM users WHERE token=?");
+$query = $conn->prepare("SELECT * FROM user_details WHERE token=?");
 $query->bind_param("s", $token);
 $query->execute();
 $result = $query->get_result();
