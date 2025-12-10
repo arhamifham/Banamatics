@@ -47,6 +47,17 @@ if ($result && $result->num_rows > 0) {
 }
 $stmt->close();
 
+if (!preg_match('/[A-Z]/', $password) ||
+    !preg_match('/[a-z]/', $password) ||
+    !preg_match('/[0-9]/', $password) ||
+    !preg_match('/[!@#$%^&*(),.?":{}|<>]/', $password) ||
+    strlen($password) < 8) 
+{
+    echo json_encode(["status" => "error", "message" => "Weak password"]);
+    exit;
+}
+
+
 // Insert user (coins default 0, theme default 'default')
 $sql = "INSERT INTO user_details (username, email, password, coins, themes) VALUES (?, ?, ?, 0, 'default')";
 $stmt = $conn->prepare($sql);
