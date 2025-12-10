@@ -7,6 +7,8 @@ type Theme = {
   name: string;
   price?: number;
   description?: string;
+  backgroundType?: string;
+  backgroundValue?: string;
   colors: Record<string, string>;
 };
 
@@ -39,6 +41,27 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       document.documentElement.style.setProperty(key, value);
     });
   
+    // apply background if backgroundType exists
+    if (theme.backgroundType && theme.backgroundValue) {
+      const appDiv = document.querySelector('.default-bg') as HTMLElement;
+      if (appDiv) {
+        // Reset both background and backgroundImage to ensure clean slate
+        appDiv.style.background = "none";
+        appDiv.style.backgroundImage = "none";
+        
+        if (theme.backgroundType === "solid") {
+          appDiv.style.background = theme.backgroundValue;
+        } else if (theme.backgroundType === "gradient") {
+          appDiv.style.background = theme.backgroundValue;
+        } else if (theme.backgroundType === "image") {
+          appDiv.style.backgroundImage = `url(${theme.backgroundValue})`;
+          appDiv.style.backgroundSize = "1500px auto";
+          appDiv.style.backgroundRepeat = "repeat-y";
+          appDiv.style.backgroundPosition = "center top";
+          appDiv.style.backgroundAttachment = "scroll";
+        }
+      }
+    }
   
     localStorage.setItem("active_theme", JSON.stringify(theme));
   };

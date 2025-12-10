@@ -5,15 +5,23 @@ import { Input } from './ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Heart } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { QuizImage } from './QuizImage';
 import { generateQuiz } from './utils/quizGenerator';
+import { THEMES } from './themeConfig';
+import { useTheme } from './ThemeContext';
 
 export function HomePage() {
   const navigate = useNavigate();
+  const { applyTheme } = useTheme();
   const [answer, setAnswer] = useState('');
   const [attempts, setAttempts] = useState(3);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
+
+  // Reset to default theme when HomePage mounts
+  useEffect(() => {
+    applyTheme(THEMES[0]);
+  }, [applyTheme]);
 
   useEffect(() => {
     async function fetchQuiz() {
@@ -56,7 +64,7 @@ export function HomePage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl bg-gradient-to-br from-yellow-100 to-orange-50">
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="text-center mb-8">
         <h1 className="text-6xl mb-4">🍌 BANAMATIX 🍌</h1>
         <p className="text-xl text-gray-700">Solve the banana math puzzles!</p>

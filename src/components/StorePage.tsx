@@ -14,9 +14,8 @@ export function StorePage() {
   const [user, setUser] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState("");
   const [coins, setCoins] = useState(0);
-  const { applyTheme } = useTheme();
   const [ownedThemes, setOwnedThemes] = useState<string[]>(["default"]);
-
+  const { applyTheme } = useTheme();
   const API_BASE = "http://localhost:8001/banamatix_backend";
 
   useEffect(() => {
@@ -56,25 +55,6 @@ export function StorePage() {
   };
 
 
-  //AI generated theme function code
-  const applyBackground = (selected: any) => {
-    if (!selected) return;
-
-    if (selected.backgroundType === "solid") {
-      document.body.style.background = selected.backgroundValue;
-    }
-    else if (selected.backgroundType === "gradient") {
-      document.body.style.background = selected.backgroundValue;
-    }
-    else if (selected.backgroundType === "image") {
-      document.body.style.backgroundImage = `url(${selected.backgroundValue})`;
-      document.body.style.backgroundSize = "1500px auto";
-      document.body.style.backgroundRepeat = "repeat-y";
-      document.body.style.backgroundPosition = "center top";
-      document.body.style.backgroundAttachment = "scroll";
-    }
-  };
-
   // update user on backend and localStorage
   const updateUserData = async (updated: any) => {
     const updatedUser = { ...user, ...updated };
@@ -99,7 +79,6 @@ export function StorePage() {
     if (!selected) return;
 
     applyTheme(selected);
-    applyBackground(selected);
     try {
       await fetch(`${API_BASE}/update_theme.php`, {
         method: "POST",
