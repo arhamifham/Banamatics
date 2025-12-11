@@ -1,3 +1,4 @@
+//UI structure is generated through figma AI plugin
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
@@ -18,6 +19,7 @@ export function LoginPage() {
 
   const GOOGLE_CLIENT_ID = "755334656652-gsegqbdf3qdqj7m4iltkdhqf7oanq37r.apps.googleusercontent.com";
 
+  // Validates password strength against security requirements (8+ chars, uppercase, lowercase, number, special char)
   const validatePassword = (password: string) => {
     const minLength = /.{8,}/;
     const upper = /[A-Z]/;
@@ -42,6 +44,7 @@ export function LoginPage() {
   };
 
 
+  // Initializes Google Sign-In button and renders it to the DOM
   useEffect(() => {
     const interval = setInterval(() => {
       if (window.google) {
@@ -63,6 +66,7 @@ export function LoginPage() {
     }, 500);
   }, []);
 
+  // Handles Google OAuth response, sends JWT token to backend for verification and authentication
   function handleGoogleResponse(response) {
     const jwt = response.credential;
 
@@ -86,7 +90,7 @@ export function LoginPage() {
         }
       });
   }
-
+  // Authenticates user with username and password, stores session token and user data
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -115,7 +119,7 @@ export function LoginPage() {
       toast.error('Server connection error');
     }
   };
-
+  // Creates new user account with email, username, and validated password
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -128,7 +132,7 @@ export function LoginPage() {
       toast.error('Passwords do not match');
       return;
     }
-
+// Validate password strength
     try {
       const res = await fetch(`${backendURL}register.php`, {
         method: 'POST',
@@ -139,7 +143,7 @@ export function LoginPage() {
 
       if (data.status === 'success') {
         toast.success('Registration successful 🎉');
-        navigate('/login');
+        navigate('/game');
       } else {
         toast.error(data.message);
       }

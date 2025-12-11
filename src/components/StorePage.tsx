@@ -1,3 +1,4 @@
+//UI structure is generated through figma AI plugin
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
@@ -48,6 +49,7 @@ export function StorePage() {
 
 
 
+  // Clears user session and redirects to login page
   const logout = () => {
     localStorage.removeItem('banamatix_current_user');
     localStorage.removeItem('auth_token');
@@ -55,7 +57,7 @@ export function StorePage() {
   };
 
 
-  // update user on backend and localStorage
+  // Syncs user data changes to both localStorage and backend database
   const updateUserData = async (updated: any) => {
     const updatedUser = { ...user, ...updated };
 

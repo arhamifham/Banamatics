@@ -1,3 +1,4 @@
+//UI structure is generated through figma AI plugin
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
@@ -59,6 +60,7 @@ export function GamePage() {
 
 
 
+  // Navigates to store page if user is authenticated
   const storeRedirect = () => {
     const user = JSON.parse(localStorage.getItem('banamatix_current_user') || '{}');
 
@@ -109,6 +111,7 @@ export function GamePage() {
   }, []);
 
 
+  // Applies selected theme background (solid, gradient, or image) to document body
   const applyBackground = (selected: any) => {
     if (!selected) return;
 
@@ -127,7 +130,7 @@ export function GamePage() {
   };
 
 
-
+//reloads the quiz with another question on component mount
   useEffect(() => {
     async function fetchQuiz() {
       try {
@@ -140,7 +143,7 @@ export function GamePage() {
     }
     fetchQuiz();
   }, []);
-
+  // Fetches a new quiz question from the generator with error fallback
   async function loadQuiz() {
     try {
     const newQuiz = await generateQuiz();
@@ -149,8 +152,8 @@ export function GamePage() {
     console.error("generateQuiz failed", err);
     setQuiz({ image: "🍌 + 2 = 5", answer: 3 });
   }
- }
-
+}
+  // Validates answer, updates score/attempts, triggers game over when no attempts left
   const handleSubmit = () => {
     if (!answer) {
       toast.error('Please enter an answer');
@@ -175,14 +178,14 @@ export function GamePage() {
       }
     }
   };
-
+//restarts the game by resetting attempts, score, and answer
   const restartGame = () => {
     setAttempts(3);
     setScore(0);
     setAnswer('');
     setGameOver(false);
   };
-
+// Logs out user, clears local storage, and resets to default theme
   const logout = () => {
     localStorage.removeItem('banamatix_current_user');
     localStorage.removeItem('auth_token');

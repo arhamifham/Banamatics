@@ -1,3 +1,4 @@
+//UI structure is generated through figma AI plugin
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
@@ -18,7 +19,7 @@ export function HomePage() {
   const [attempts, setAttempts] = useState(3);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
 
-  // Reset to default theme when HomePage mounts
+  // Reset to default theme when HomePage opens
   useEffect(() => {
     applyTheme(THEMES[0]);
   }, [applyTheme]);
@@ -32,6 +33,7 @@ export function HomePage() {
   }, []);
 
 
+  // Fetches a new quiz question from the generator
   async function loadQuiz() {
     const newQuiz = await generateQuiz();
     setQuiz(newQuiz);
@@ -39,6 +41,7 @@ export function HomePage() {
 
   const [score, setScore] = useState(0);
 
+  // Checks answer, updates score/attempts, and navigates to login when trials end
   const handleSubmit = () => {
     if (!answer) {
       toast.error('Please enter an answer');
